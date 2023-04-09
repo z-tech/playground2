@@ -1,0 +1,8 @@
+[package]
+name = "playground2"
+version = "0.0.0"
+authors = ["Andrew Zitek-Estrada <alz236@nyu.edu>"]
+edition = "2021"
+[dependencies]
+openssl = { version = "0.10.49", features = ["vendored"] }
+rayon = "1.7.0"
