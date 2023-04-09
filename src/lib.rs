@@ -47,7 +47,8 @@ impl BigNumHasher for BigNumPrimeHasher {
         let ps: Arc<Mutex<HashMap<usize, BigNum>>> = Arc::new(Mutex::new(HashMap::new()));
         // for each input map to prime in parallel
         bns.par_iter().enumerate().for_each(|(i, bn)| {
-            ps.lock().unwrap().insert(i, BigNumPrimeHasher::hash(bn).unwrap());
+            let prime = BigNumPrimeHasher::hash(bn).unwrap();
+            ps.lock().unwrap().insert(i, prime.to_owned().unwrap());
         });
         // iterate through the map and place into vec in correct order
         let mut result: Vec<BigNum> = Vec::with_capacity(bns.len());
