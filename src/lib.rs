@@ -15,9 +15,9 @@ trait BigNumHasher {
     fn hash_all_pl(bns: Vec<BigNum>) -> Result< Vec<BigNum>, ErrorStack >;
 }
 
-struct PrimeHasher;
+struct BigNumPrimeHasher;
 
-impl BigNumHasher for PrimeHasher {
+impl BigNumHasher for BigNumPrimeHasher {
     fn hash(bn: &BigNum) -> Result< BigNum, ErrorStack > {
         // ensure prime candidate is odd
         let mut pc = (*bn).to_owned().unwrap();
@@ -38,18 +38,18 @@ impl BigNumHasher for PrimeHasher {
         let mut ps: Vec<BigNum> = Vec::with_capacity(bns.len());
         // for each input map to prime
         for bn in bns.iter() {
-            ps.push(PrimeHasher::hash(bn).unwrap());
+            ps.push(BigNumPrimeHasher::hash(bn).unwrap());
         }
         Ok(ps)
     }
     fn hash_all_pl(bns: Vec<BigNum>) -> Result< Vec<BigNum>, ErrorStack > {
-        // initialize array of primes
+        // initialize map of index-prime
         let ps: Arc<Mutex<HashMap<usize, BigNum>>> = Arc::new(Mutex::new(HashMap::new()));
-        // for each input map to prime and place in ps (i, prime)
+        // for each input map to prime in parallel
         bns.par_iter().enumerate().for_each(|(i, bn)| {
-            ps.lock().unwrap().insert(i, PrimeHasher::hash(bn).unwrap());
+            ps.lock().unwrap().insert(i, BigNumPrimeHasher::hash(bn).unwrap());
         });
-        // iterate through map into Vec<BigNum> and return
+        // iterate through the map and place into vec in correct order
         let mut result: Vec<BigNum> = Vec::with_capacity(bns.len());
         for i in 0..bns.len() {
             result.push((*ps.lock().unwrap().get(&i).unwrap()).to_owned().unwrap());
@@ -116,21 +116,21 @@ mod tests {
     fn test_prime_hasher_hash() {
         let inputs = inputs();
         let expects = expects();
-        let result: BigNum = PrimeHasher::hash(&inputs[0]).unwrap();
+        let result: BigNum = BigNumPrimeHasher::hash(&inputs[0]).unwrap();
         assert_eq!(result, expects[0]);
     }
     #[test]
     fn test_prime_hasher_hash_all() {
         let inputs = inputs();
         let expects = expects();
-        let result: Vec<BigNum> = PrimeHasher::hash_all(inputs).unwrap();
+        let result: Vec<BigNum> = BigNumPrimeHasher::hash_all(inputs).unwrap();
         assert_eq!(result, expects);
     }
     #[test]
     fn test_prime_hasher_hash_all_pl() {
         let inputs = inputs();
         let expects = expects();
-        let result: Vec<BigNum> = PrimeHasher::hash_all_pl(inputs).unwrap();
+        let result: Vec<BigNum> = BigNumPrimeHasher::hash_all_pl(inputs).unwrap();
         assert_eq!(result, expects);
     }
 }
